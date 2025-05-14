@@ -1,0 +1,14 @@
+{
+  "name": "ecomap-kz-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for EcoMap KZ",
+  "scripts": {
+    "start": "python bot.py",
+    "deploy": "vercel --prod"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+} 
