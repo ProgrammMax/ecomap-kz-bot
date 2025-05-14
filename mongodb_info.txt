@@ -1,0 +1,16 @@
+Для подключения к MongoDB:
+
+1. Ваша строка подключения:
+mongodb+srv://ligajmaks4:<db_password>@cluster0.4jctq3c.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
+2. Замените <db_password> на ваш реальный пароль.
+
+3. Добавьте эту строку в файл .env:
+MONGODB_URI=mongodb+srv://ligajmaks4:your_actual_password@cluster0.4jctq3c.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
+4. Убедитесь, что в файле .env также есть:
+TELEGRAM_TOKEN=ваш_токен_бота
+OPENWEATHER_API_KEY=ваш_ключ_api (если используется)
+
+5. Установите pymongo:
+pip install pymongo[srv] 
