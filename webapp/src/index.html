@@ -108,6 +108,7 @@
         }
         
         .map-container {
+            position: relative;
             height: 400px;
             border-radius: 15px;
             overflow: hidden;
@@ -482,6 +483,20 @@
             font-size: 12px;
             color: #888;
         }
+        
+        /* Стили для индикатора загрузки карты */
+        .map-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+        }
     </style>
 </head>
 <body>
@@ -550,10 +565,18 @@
                     </div>
                 </div>
                 
-                <div class="section-title" style="margin-top: 20px;">Экологические проблемы рядом</div>
+                <div class="section-title" style="margin-top: 20px;">Экологическая карта {{ userCity }}</div>
                 
                 <div class="map-container">
-                    <div id="map"></div>
+                    <div id="map" style="height: 100%; width: 100%;"></div>
+                    <div v-if="!map" class="map-loading-overlay">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Загрузка...</span>
+                            </div>
+                            <p class="mt-2">Загрузка карты...</p>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="section-title">Проблемы рядом <i class="fas fa-map-marker-alt"></i></div>
@@ -746,20 +769,25 @@
             </div>
             
             <div v-if="activeTab === 'info'" class="content-container">
-                <div class="section-title">Пункты переработки рядом</div>
+                <div class="section-title">Пункты переработки в городе {{ userCity }}</div>
                 
-                <div v-for="point in recyclingPoints" class="recycling-point">
-                    <div class="point-icon">
-                        <i :class="point.icon"></i>
-                    </div>
-                    <div>
-                        <div><strong>{{ point.name }}</strong></div>
-                        <div>{{ point.address }}</div>
-                        <div><small>{{ point.distance }} км от вас</small></div>
+                <div v-if="getFilteredRecyclingPoints().length" class="recycling-points-list">
+                    <div v-for="point in getFilteredRecyclingPoints()" class="recycling-point">
+                        <div class="point-icon">
+                            <i :class="point.icon"></i>
+                        </div>
+                        <div>
+                            <div><strong>{{ point.name }}</strong></div>
+                            <div>{{ point.address }}</div>
+                            <div><small>{{ point.distance }} км от центра</small></div>
+                        </div>
                     </div>
                 </div>
+                <div v-else class="alert alert-warning">
+                    В городе {{ userCity }} не найдено пунктов переработки в нашей базе данных.
+                </div>
                 
-                <div class="section-title" style="margin-top: 20px;">Динамика экологической ситуации</div>
+                <div class="section-title" style="margin-top: 20px;">Динамика экологической ситуации в {{ userCity }}</div>
                 
                 <div class="card">
                     <div class="card-body">
