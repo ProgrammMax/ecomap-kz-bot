@@ -370,278 +370,444 @@
             height: 120px;
             object-fit: cover;
         }
+        
+        /* Стили для выбора города */
+        .city-selector select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 16px;
+        }
+        
+        /* Стили для отображения проблем */
+        .problem-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .problem-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .problem-image-container {
+            width: 100%;
+            height: 180px;
+            overflow: hidden;
+        }
+        
+        .problem-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .problem-content {
+            padding: 15px;
+        }
+        
+        .problem-type {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .problem-type-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        
+        .problem-details {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .problem-location, .problem-date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Стили для пунктов переработки */
+        .recycling-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .recycling-card {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .recycling-type {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .recycling-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f0f7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+        
+        .recycling-address {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .recycling-distance {
+            margin: 0;
+            font-size: 12px;
+            color: #888;
+        }
     </style>
 </head>
 <body>
     <div id="app">
         <div v-if="activeTab === 'home'" class="content-container">
-            <div class="user-profile">
-                <div class="user-avatar">Э</div>
-                <div>
-                    <h2 style="margin: 0; font-size: 18px;">ЭкоКарта КЗ</h2>
-                    <p style="margin: 0; color: #666;">Экологическая карта Казахстана</p>
+            <div class="container mb-5 pb-3">
+                <div class="app-header">
+                    <h1><i class="fas fa-leaf text-success"></i> EcoMap KZ</h1>
+                </div>
+                
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0;">Эко-активист</h3>
+                        <p style="margin: 0; color: #666;">Ваш город: {{ userCity }}</p>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Выберите город</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="city-selector">
+                            <select class="form-select" v-model="userCity" @change="changeUserCity(userCity)">
+                                <option v-for="city in availableCities" :key="city" :value="city">
+                                    {{ city }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title">Качество воздуха <i class="fas fa-wind"></i></div>
+                
+                <div v-if="userCity && airQualityData[userCity]" class="air-quality-card">
+                    <h3>{{ userCity }}</h3>
+                    <div style="display: flex; align-items: center; margin: 10px 0;">
+                        <div class="aqi-indicator" :class="getAqiClass(airQualityData[userCity].aqi)"></div>
+                        <span style="font-weight: bold; font-size: 24px; margin-right: 10px;">{{ airQualityData[userCity].aqi }}</span>
+                        <span>{{ airQualityData[userCity].status }}</span>
+                    </div>
+                    
+                    <div v-if="airQualityData[userCity].aqi > 100" class="health-alert">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Внимание!</h4>
+                        <p>Качество воздуха опасно для здоровья. Рекомендуется надеть маску и ограничить пребывание на улице.</p>
+                    </div>
+                    
+                    <div v-if="airQualityData[userCity].aqi > 50" class="health-advice">
+                        <h4><i class="fas fa-info-circle"></i> Рекомендации</h4>
+                        <ul>
+                            <li>Не открывайте окна</li>
+                            <li>Пейте больше воды</li>
+                            <li>Не выходите с детьми и пожилыми людьми</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <div style="font-weight: bold;">Детали:</div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                            <div>PM2.5: {{ airQualityData[userCity].pm25 }} мкг/м³</div>
+                            <div>Обновлено: {{ new Date().toLocaleTimeString() }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title" style="margin-top: 20px;">Экологические проблемы рядом</div>
+                
+                <div class="map-container">
+                    <div id="map"></div>
+                </div>
+                
+                <div class="section-title">Проблемы рядом <i class="fas fa-map-marker-alt"></i></div>
+                <div v-if="nearbyProblems.length" class="problem-list">
+                    <div v-for="problem in nearbyProblems" :key="problem.id" class="problem-card">
+                        <div v-if="problem.photos && problem.photos.length" class="problem-image-container">
+                            <img :src="problem.photos[0]" class="problem-image" :alt="getProblemTypeName(problem.type)">
+                        </div>
+                        <div class="problem-content">
+                            <div class="problem-type">
+                                <img :src="getProblemTypeIcon(problem.type)" class="problem-type-icon">
+                                <span>{{ getProblemTypeName(problem.type) }}</span>
+                            </div>
+                            <h4>{{ problem.description }}</h4>
+                            <div class="problem-details">
+                                <div class="problem-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>{{ problem.location }}</span>
+                                </div>
+                                <div class="problem-date">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>{{ formatDate(problem.createdAt) }}</span>
+                                </div>
+                            </div>
+                            <div class="problem-info">
+                                <button @click="supportProblem(problem.id)" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-heart"></i> Поддержать ({{ problem.confirmations }})
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="alert alert-info">
+                    Рядом с вами не найдено экологических проблем. Это хорошо!
+                </div>
+                
+                <div class="section-title">Пункты переработки <i class="fas fa-recycle"></i></div>
+                <div v-if="getFilteredRecyclingPoints().length" class="recycling-list">
+                    <div v-for="point in getFilteredRecyclingPoints()" :key="point.name + point.address" class="recycling-card card">
+                        <div class="card-body">
+                            <div class="recycling-type">
+                                <div class="recycling-icon">
+                                    <i :class="point.icon"></i>
+                                </div>
+                                <div>
+                                    <h4>{{ point.name }}</h4>
+                                    <p class="recycling-address">{{ point.address }}</p>
+                                    <p class="recycling-distance">
+                                        <i class="fas fa-walking"></i> {{ point.distance }} км от вас
+                                    </p>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm mt-2">
+                                <i class="fas fa-directions"></i> Маршрут
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="alert alert-warning">
+                    В городе {{ userCity }} не найдено пунктов переработки в нашей базе данных.
+                </div>
+                
+                <div class="section-title" style="margin-top: 20px;">Эко-совет дня</div>
+                
+                <div class="eco-tip">
+                    <h4><i class="fas fa-lightbulb"></i> Не выбрасывайте батарейки в обычный мусор</h4>
+                    <p>Одна батарейка загрязняет 20 кв. метров земли. Сдавайте их в специальные пункты приема.</p>
                 </div>
             </div>
             
-            <div class="section-title">Качество воздуха</div>
+            <div v-if="activeTab === 'map'" class="content-container">
+                <div class="tab-navigation">
+                    <div class="tab-item" :class="{ active: mapSubtab === 'all' }" @click="mapSubtab = 'all'">Все</div>
+                    <div class="tab-item" :class="{ active: mapSubtab === 'air' }" @click="mapSubtab = 'air'">Воздух</div>
+                    <div class="tab-item" :class="{ active: mapSubtab === 'water' }" @click="mapSubtab = 'water'">Вода</div>
+                    <div class="tab-item" :class="{ active: mapSubtab === 'garbage' }" @click="mapSubtab = 'garbage'">Мусор</div>
+                    <div class="tab-item" :class="{ active: mapSubtab === 'trees' }" @click="mapSubtab = 'trees'">Деревья</div>
+                </div>
+                
+                <div class="map-container" style="height: 500px;">
+                    <div id="bigMap"></div>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <select class="form-select" v-model="selectedRegion" @change="applyFilters">
+                        <option v-for="region in regions" :value="region">{{ region }}</option>
+                    </select>
+                </div>
+                
+                <div v-if="mapSubtab === 'air'" class="section-title">Качество воздуха в городах</div>
+                
+                <div v-if="mapSubtab === 'air'" class="row">
+                    <div v-for="(data, city) in airQualityData" class="col-6">
+                        <div class="air-quality-card">
+                            <div style="display: flex; align-items: center;">
+                                <div class="aqi-indicator" :class="getAqiClass(data.aqi)"></div>
+                                <h4 style="margin: 0 0 0 10px;">{{ city }}</h4>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <div><strong>AQI:</strong> {{ data.aqi }} ({{ data.status }})</div>
+                                <div><strong>PM2.5:</strong> {{ data.pm25 }} мкг/м³</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
-            <div v-if="userCity && airQualityData[userCity]" class="air-quality-card">
-                <h3>{{ userCity }}</h3>
-                <div style="display: flex; align-items: center; margin: 10px 0;">
-                    <div class="aqi-indicator" :class="getAqiClass(airQualityData[userCity].aqi)"></div>
-                    <span style="font-weight: bold; font-size: 24px; margin-right: 10px;">{{ airQualityData[userCity].aqi }}</span>
-                    <span>{{ airQualityData[userCity].status }}</span>
+            <div v-if="activeTab === 'add'" class="content-container">
+                <div class="section-title">Сообщить о проблеме</div>
+                
+                <div class="problem-form">
+                    <form @submit.prevent="submitProblem">
+                        <div class="mb-3">
+                            <label class="form-label">Тип проблемы</label>
+                            <select class="form-select" v-model="problem.type" required>
+                                <option v-for="type in problemTypes" :value="type.id">{{ type.name }}</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Описание проблемы</label>
+                            <textarea class="form-control" rows="3" v-model="problem.description" placeholder="Опишите проблему подробнее..." required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Местоположение</label>
+                            <div class="map-container" style="height: 200px;">
+                                <div id="problemMap"></div>
+                            </div>
+                            <input type="text" class="form-control mt-2" v-model="problem.location" readonly>
+                            <div class="form-text">Кликните на карте, чтобы указать местоположение</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Фотография</label>
+                            <input type="file" class="form-control" accept="image/*" @change="handleFileUpload">
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="anonymous" v-model="problem.anonymous">
+                            <label class="form-check-label" for="anonymous">Отправить анонимно</label>
+                        </div>
+                        
+                        <button type="submit" class="action-button" style="width: 100%;">Отправить</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div v-if="activeTab === 'community'" class="content-container">
+                <div class="section-title">Экологические мероприятия</div>
+                
+                <div class="event-card">
+                    <img src="https://images.unsplash.com/photo-1574438427535-6b83c0f1e4b3?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="event-image">
+                    <div class="event-date">23 мая</div>
+                    <div class="event-info">
+                        <h4>Субботник в парке Горького</h4>
+                        <p>Приглашаем всех присоединиться к уборке территории парка Горького в Алматы</p>
+                        <div style="margin: 10px 0;">
+                            <span class="badge badge-green">Уборка</span>
+                            <span class="badge badge-green">Алматы</span>
+                        </div>
+                        <button class="action-button" style="width: 100%;">Присоединиться</button>
+                    </div>
                 </div>
                 
-                <div v-if="airQualityData[userCity].aqi > 100" class="health-alert">
-                    <h4><i class="fas fa-exclamation-triangle"></i> Внимание!</h4>
-                    <p>Качество воздуха опасно для здоровья. Рекомендуется надеть маску и ограничить пребывание на улице.</p>
+                <div class="event-card">
+                    <img src="https://images.unsplash.com/photo-1504283758039-59077171c192?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="event-image">
+                    <div class="event-date">30 мая</div>
+                    <div class="event-info">
+                        <h4>Посадка деревьев</h4>
+                        <p>Акция по озеленению города. Планируем посадить 100 саженцев</p>
+                        <div style="margin: 10px 0;">
+                            <span class="badge badge-green">Озеленение</span>
+                            <span class="badge badge-green">Астана</span>
+                        </div>
+                        <button class="action-button" style="width: 100%;">Присоединиться</button>
+                    </div>
                 </div>
                 
-                <div v-if="airQualityData[userCity].aqi > 50" class="health-advice">
-                    <h4><i class="fas fa-info-circle"></i> Рекомендации</h4>
-                    <ul>
-                        <li>Не открывайте окна</li>
-                        <li>Пейте больше воды</li>
-                        <li>Не выходите с детьми и пожилыми людьми</li>
-                    </ul>
+                <div class="section-title" style="margin-top: 20px;">Эко-викторина</div>
+                
+                <div class="quiz-card">
+                    <h4>Что разлагается в природе более 500 лет?</h4>
+                    <div class="quiz-option">Бумага</div>
+                    <div class="quiz-option">Пластиковая бутылка</div>
+                    <div class="quiz-option">Банановая кожура</div>
+                    <div class="quiz-option">Стекло</div>
+                    <button class="action-button" style="width: 100%; margin-top: 10px;">Ответить</button>
+                </div>
+            </div>
+            
+            <div v-if="activeTab === 'info'" class="content-container">
+                <div class="section-title">Пункты переработки рядом</div>
+                
+                <div v-for="point in recyclingPoints" class="recycling-point">
+                    <div class="point-icon">
+                        <i :class="point.icon"></i>
+                    </div>
+                    <div>
+                        <div><strong>{{ point.name }}</strong></div>
+                        <div>{{ point.address }}</div>
+                        <div><small>{{ point.distance }} км от вас</small></div>
+                    </div>
+                </div>
+                
+                <div class="section-title" style="margin-top: 20px;">Динамика экологической ситуации</div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Изменения за последние 6 месяцев</h5>
+                        <div style="display: flex; justify-content: space-between; margin: 15px 0;">
+                            <div>
+                                <div class="badge badge-green">+15%</div>
+                                <div>Решенные проблемы</div>
+                            </div>
+                            <div>
+                                <div class="badge badge-yellow">-5%</div>
+                                <div>Качество воздуха</div>
+                            </div>
+                            <div>
+                                <div class="badge badge-red">+8%</div>
+                                <div>Новые свалки</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title" style="margin-top: 20px;">Уведомления о безопасности</div>
+                
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="push-notifications" checked>
+                    <label class="form-check-label" for="push-notifications">Push-уведомления</label>
+                </div>
+                
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="telegram-notifications" checked>
+                    <label class="form-check-label" for="telegram-notifications">Telegram-уведомления</label>
                 </div>
                 
                 <div style="margin-top: 15px;">
-                    <div style="font-weight: bold;">Детали:</div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                        <div>PM2.5: {{ airQualityData[userCity].pm25 }} мкг/м³</div>
-                        <div>Обновлено: {{ new Date().toLocaleTimeString() }}</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="section-title" style="margin-top: 20px;">Экологические проблемы рядом</div>
-            
-            <div class="map-container">
-                <div id="map"></div>
-            </div>
-            
-            <div v-for="problem in nearbyProblems" class="problem-card">
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                    <img :src="getProblemTypeIcon(problem.type)" style="width: 24px; height: 24px; margin-right: 10px;">
-                    <h4 style="margin: 0;">{{ getProblemTypeName(problem.type) }}</h4>
-                </div>
-                
-                <p>{{ problem.description }}</p>
-                
-                <img v-if="problem.photos && problem.photos.length > 0" :src="problem.photos[0]" class="problem-image">
-                
-                <div class="problem-info">
-                    <div>{{ problem.location }}</div>
-                    <div class="problem-stats">
-                        <div class="problem-stat">
-                            <i class="fas fa-thumbs-up"></i>
-                            <span>{{ problem.confirmations }}</span>
-                        </div>
-                        <div class="problem-stat">
-                            <i class="fas fa-calendar"></i>
-                            <span>{{ formatDate(problem.createdAt) }}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="action-button" style="width: 100%; margin-top: 10px;" @click="supportProblem(problem.id)">
-                    Поддержать
-                </button>
-            </div>
-            
-            <div class="section-title" style="margin-top: 20px;">Эко-совет дня</div>
-            
-            <div class="eco-tip">
-                <h4><i class="fas fa-lightbulb"></i> Не выбрасывайте батарейки в обычный мусор</h4>
-                <p>Одна батарейка загрязняет 20 кв. метров земли. Сдавайте их в специальные пункты приема.</p>
-            </div>
-        </div>
-        
-        <div v-if="activeTab === 'map'" class="content-container">
-            <div class="tab-navigation">
-                <div class="tab-item" :class="{ active: mapSubtab === 'all' }" @click="mapSubtab = 'all'">Все</div>
-                <div class="tab-item" :class="{ active: mapSubtab === 'air' }" @click="mapSubtab = 'air'">Воздух</div>
-                <div class="tab-item" :class="{ active: mapSubtab === 'water' }" @click="mapSubtab = 'water'">Вода</div>
-                <div class="tab-item" :class="{ active: mapSubtab === 'garbage' }" @click="mapSubtab = 'garbage'">Мусор</div>
-                <div class="tab-item" :class="{ active: mapSubtab === 'trees' }" @click="mapSubtab = 'trees'">Деревья</div>
-            </div>
-            
-            <div class="map-container" style="height: 500px;">
-                <div id="bigMap"></div>
-            </div>
-            
-            <div style="margin: 20px 0;">
-                <select class="form-select" v-model="selectedRegion" @change="applyFilters">
-                    <option v-for="region in regions" :value="region">{{ region }}</option>
-                </select>
-            </div>
-            
-            <div v-if="mapSubtab === 'air'" class="section-title">Качество воздуха в городах</div>
-            
-            <div v-if="mapSubtab === 'air'" class="row">
-                <div v-for="(data, city) in airQualityData" class="col-6">
-                    <div class="air-quality-card">
-                        <div style="display: flex; align-items: center;">
-                            <div class="aqi-indicator" :class="getAqiClass(data.aqi)"></div>
-                            <h4 style="margin: 0 0 0 10px;">{{ city }}</h4>
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <div><strong>AQI:</strong> {{ data.aqi }} ({{ data.status }})</div>
-                            <div><strong>PM2.5:</strong> {{ data.pm25 }} мкг/м³</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div v-if="activeTab === 'add'" class="content-container">
-            <div class="section-title">Сообщить о проблеме</div>
-            
-            <div class="problem-form">
-                <form @submit.prevent="submitProblem">
-                    <div class="mb-3">
-                        <label class="form-label">Тип проблемы</label>
-                        <select class="form-select" v-model="problem.type" required>
-                            <option v-for="type in problemTypes" :value="type.id">{{ type.name }}</option>
-                        </select>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="hazard-notifications" checked>
+                        <label class="form-check-label" for="hazard-notifications">Экстренные уведомления о химических выбросах</label>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Описание проблемы</label>
-                        <textarea class="form-control" rows="3" v-model="problem.description" placeholder="Опишите проблему подробнее..." required></textarea>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="air-notifications" checked>
+                        <label class="form-check-label" for="air-notifications">Уведомления о критическом качестве воздуха</label>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Местоположение</label>
-                        <div class="map-container" style="height: 200px;">
-                            <div id="problemMap"></div>
-                        </div>
-                        <input type="text" class="form-control mt-2" v-model="problem.location" readonly>
-                        <div class="form-text">Кликните на карте, чтобы указать местоположение</div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="water-notifications" checked>
+                        <label class="form-check-label" for="water-notifications">Уведомления о загрязнении водоемов</label>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Фотография</label>
-                        <input type="file" class="form-control" accept="image/*" @change="handleFileUpload">
-                    </div>
-                    
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="anonymous" v-model="problem.anonymous">
-                        <label class="form-check-label" for="anonymous">Отправить анонимно</label>
-                    </div>
-                    
-                    <button type="submit" class="action-button" style="width: 100%;">Отправить</button>
-                </form>
-            </div>
-        </div>
-        
-        <div v-if="activeTab === 'community'" class="content-container">
-            <div class="section-title">Экологические мероприятия</div>
-            
-            <div class="event-card">
-                <img src="https://images.unsplash.com/photo-1574438427535-6b83c0f1e4b3?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="event-image">
-                <div class="event-date">23 мая</div>
-                <div class="event-info">
-                    <h4>Субботник в парке Горького</h4>
-                    <p>Приглашаем всех присоединиться к уборке территории парка Горького в Алматы</p>
-                    <div style="margin: 10px 0;">
-                        <span class="badge badge-green">Уборка</span>
-                        <span class="badge badge-green">Алматы</span>
-                    </div>
-                    <button class="action-button" style="width: 100%;">Присоединиться</button>
-                </div>
-            </div>
-            
-            <div class="event-card">
-                <img src="https://images.unsplash.com/photo-1504283758039-59077171c192?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="event-image">
-                <div class="event-date">30 мая</div>
-                <div class="event-info">
-                    <h4>Посадка деревьев</h4>
-                    <p>Акция по озеленению города. Планируем посадить 100 саженцев</p>
-                    <div style="margin: 10px 0;">
-                        <span class="badge badge-green">Озеленение</span>
-                        <span class="badge badge-green">Астана</span>
-                    </div>
-                    <button class="action-button" style="width: 100%;">Присоединиться</button>
-                </div>
-            </div>
-            
-            <div class="section-title" style="margin-top: 20px;">Эко-викторина</div>
-            
-            <div class="quiz-card">
-                <h4>Что разлагается в природе более 500 лет?</h4>
-                <div class="quiz-option">Бумага</div>
-                <div class="quiz-option">Пластиковая бутылка</div>
-                <div class="quiz-option">Банановая кожура</div>
-                <div class="quiz-option">Стекло</div>
-                <button class="action-button" style="width: 100%; margin-top: 10px;">Ответить</button>
-            </div>
-        </div>
-        
-        <div v-if="activeTab === 'info'" class="content-container">
-            <div class="section-title">Пункты переработки рядом</div>
-            
-            <div v-for="point in recyclingPoints" class="recycling-point">
-                <div class="point-icon">
-                    <i :class="point.icon"></i>
-                </div>
-                <div>
-                    <div><strong>{{ point.name }}</strong></div>
-                    <div>{{ point.address }}</div>
-                    <div><small>{{ point.distance }} км от вас</small></div>
-                </div>
-            </div>
-            
-            <div class="section-title" style="margin-top: 20px;">Динамика экологической ситуации</div>
-            
-            <div class="card">
-                <div class="card-body">
-                    <h5>Изменения за последние 6 месяцев</h5>
-                    <div style="display: flex; justify-content: space-between; margin: 15px 0;">
-                        <div>
-                            <div class="badge badge-green">+15%</div>
-                            <div>Решенные проблемы</div>
-                        </div>
-                        <div>
-                            <div class="badge badge-yellow">-5%</div>
-                            <div>Качество воздуха</div>
-                        </div>
-                        <div>
-                            <div class="badge badge-red">+8%</div>
-                            <div>Новые свалки</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="section-title" style="margin-top: 20px;">Уведомления о безопасности</div>
-            
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="push-notifications" checked>
-                <label class="form-check-label" for="push-notifications">Push-уведомления</label>
-            </div>
-            
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="telegram-notifications" checked>
-                <label class="form-check-label" for="telegram-notifications">Telegram-уведомления</label>
-            </div>
-            
-            <div style="margin-top: 15px;">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="hazard-notifications" checked>
-                    <label class="form-check-label" for="hazard-notifications">Экстренные уведомления о химических выбросах</label>
-                </div>
-                
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="air-notifications" checked>
-                    <label class="form-check-label" for="air-notifications">Уведомления о критическом качестве воздуха</label>
-                </div>
-                
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="water-notifications" checked>
-                    <label class="form-check-label" for="water-notifications">Уведомления о загрязнении водоемов</label>
                 </div>
             </div>
         </div>
