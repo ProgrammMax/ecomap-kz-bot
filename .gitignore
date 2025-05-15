@@ -30,3 +30,4 @@ ENV/
 
 # Local development
 node_modules/ 
+.vercel
