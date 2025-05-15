@@ -497,9 +497,90 @@
             align-items: center;
             border-radius: 15px;
         }
+        
+        /* Стили для меток городов на карте */
+        .city-label-container {
+            background: transparent;
+            border: none;
+        }
+        
+        .city-label {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            white-space: nowrap;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Стили для большой карты на вкладке Карта */
+        #bigMap {
+            height: 100%; 
+            width: 100%; 
+            background-color: #2d3439;
+        }
+        
+        /* Стили для легенды качества воздуха */
+        .air-quality-legend {
+            margin-top: 15px;
+        }
+        
+        .aqi-scale {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .aqi-level {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .aqi-level .aqi-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .aqi-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .aqi-info small {
+            color: #666;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
+    <!-- Раздел для предзагрузки изображений -->
+    <div id="preload-images" style="display: none;">
+        <img src="demo/garbage1.jpg" alt="preload">
+        <img src="demo/garbage2.jpg" alt="preload">
+        <img src="demo/garbage3.jpg" alt="preload">
+        <img src="demo/air1.jpg" alt="preload">
+        <img src="demo/air2.jpg" alt="preload">
+        <img src="demo/air3.jpg" alt="preload">
+        <img src="demo/water1.jpg" alt="preload">
+        <img src="demo/water2.jpg" alt="preload">
+        <img src="demo/water3.jpg" alt="preload">
+        <img src="demo/forest1.jpg" alt="preload">
+        <img src="demo/forest2.jpg" alt="preload">
+        <img src="demo/forest3.jpg" alt="preload">
+        <img src="demo/other1.jpg" alt="preload">
+        <img src="demo/other2.jpg" alt="preload">
+        <img src="icons/trash-icon.png" alt="preload">
+        <img src="icons/air-icon.png" alt="preload">
+        <img src="icons/water-icon.png" alt="preload">
+        <img src="icons/tree-icon.png" alt="preload">
+        <img src="icons/other-icon.png" alt="preload">
+    </div>
+
     <div id="app">
         <div v-if="activeTab === 'home'" class="content-container">
             <div class="container mb-5 pb-3">
@@ -542,12 +623,12 @@
                         <span>{{ airQualityData[userCity].status }}</span>
                     </div>
                     
-                    <div v-if="airQualityData[userCity].aqi > 100" class="health-alert">
+                    <div v-if="isHighRiskCity(userCity) && airQualityData[userCity].aqi > 100" class="health-alert">
                         <h4><i class="fas fa-exclamation-triangle"></i> Внимание!</h4>
                         <p>Качество воздуха опасно для здоровья. Рекомендуется надеть маску и ограничить пребывание на улице.</p>
                     </div>
                     
-                    <div v-if="airQualityData[userCity].aqi > 50" class="health-advice">
+                    <div v-if="isHighRiskCity(userCity) && airQualityData[userCity].aqi > 50" class="health-advice">
                         <h4><i class="fas fa-info-circle"></i> Рекомендации</h4>
                         <ul>
                             <li>Не открывайте окна</li>
@@ -583,7 +664,7 @@
                 <div v-if="nearbyProblems.length" class="problem-list">
                     <div v-for="problem in nearbyProblems" :key="problem.id" class="problem-card">
                         <div v-if="problem.photos && problem.photos.length" class="problem-image-container">
-                            <img :src="problem.photos[0]" class="problem-image" :alt="getProblemTypeName(problem.type)">
+                            <img :src="problem.photos[0]" class="problem-image" :alt="getProblemTypeName(problem.type)" @error="handleImageError($event, problem)">
                         </div>
                         <div class="problem-content">
                             <div class="problem-type">
@@ -648,16 +729,26 @@
             </div>
             
             <div v-if="activeTab === 'map'" class="content-container">
+                <div class="section-title">Экологическая карта Казахстана</div>
+                
                 <div class="tab-navigation">
                     <div class="tab-item" :class="{ active: mapSubtab === 'all' }" @click="mapSubtab = 'all'">Все</div>
                     <div class="tab-item" :class="{ active: mapSubtab === 'air' }" @click="mapSubtab = 'air'">Воздух</div>
                     <div class="tab-item" :class="{ active: mapSubtab === 'water' }" @click="mapSubtab = 'water'">Вода</div>
                     <div class="tab-item" :class="{ active: mapSubtab === 'garbage' }" @click="mapSubtab = 'garbage'">Мусор</div>
-                    <div class="tab-item" :class="{ active: mapSubtab === 'trees' }" @click="mapSubtab = 'trees'">Деревья</div>
+                    <div class="tab-item" :class="{ active: mapSubtab === 'deforestation' }" @click="mapSubtab = 'deforestation'">Деревья</div>
                 </div>
                 
                 <div class="map-container" style="height: 500px;">
                     <div id="bigMap"></div>
+                    <div v-if="!bigMap" class="map-loading-overlay">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Загрузка...</span>
+                            </div>
+                            <p class="mt-2">Загрузка карты...</p>
+                        </div>
+                    </div>
                 </div>
                 
                 <div style="margin: 20px 0;">
@@ -667,6 +758,56 @@
                 </div>
                 
                 <div v-if="mapSubtab === 'air'" class="section-title">Качество воздуха в городах</div>
+                
+                <div v-if="mapSubtab === 'air'" class="air-quality-legend card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Шкала качества воздуха (AQI)</h5>
+                        <div class="aqi-scale">
+                            <div class="aqi-level">
+                                <div class="aqi-indicator" style="background-color: #4CAF50;"></div>
+                                <div class="aqi-info">
+                                    <strong>0-50:</strong> Хороший
+                                    <small>Качество воздуха безопасно для всех групп населения</small>
+                                </div>
+                            </div>
+                            <div class="aqi-level">
+                                <div class="aqi-indicator" style="background-color: #FFEB3B;"></div>
+                                <div class="aqi-info">
+                                    <strong>51-100:</strong> Умеренный
+                                    <small>Загрязнение может вызвать дискомфорт у чувствительных людей</small>
+                                </div>
+                            </div>
+                            <div class="aqi-level">
+                                <div class="aqi-indicator" style="background-color: #FF9800;"></div>
+                                <div class="aqi-info">
+                                    <strong>101-150:</strong> Вредный для чувствительных групп
+                                    <small>Люди с респираторными заболеваниями должны ограничить пребывание на улице</small>
+                                </div>
+                            </div>
+                            <div class="aqi-level">
+                                <div class="aqi-indicator" style="background-color: #F44336;"></div>
+                                <div class="aqi-info">
+                                    <strong>151-200:</strong> Вредный
+                                    <small>Каждый может испытывать негативное влияние на здоровье</small>
+                                </div>
+                            </div>
+                            <div class="aqi-level">
+                                <div class="aqi-indicator" style="background-color: #9C27B0;"></div>
+                                <div class="aqi-info">
+                                    <strong>201-300:</strong> Очень вредный
+                                    <small>Серьезный риск для здоровья, все должны ограничить активность на улице</small>
+                                </div>
+                            </div>
+                            <div class="aqi-level">
+                                <div class="aqi-indicator" style="background-color: #880E4F;"></div>
+                                <div class="aqi-info">
+                                    <strong>>300:</strong> Опасный
+                                    <small>Чрезвычайная ситуация для здоровья всего населения</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <div v-if="mapSubtab === 'air'" class="row">
                     <div v-for="(data, city) in airQualityData" class="col-6">
